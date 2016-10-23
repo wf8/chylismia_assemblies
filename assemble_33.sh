@@ -34,7 +34,7 @@ do
         samtools depth ${index}_sorted.bam > ${index}_read_depth.tsv
         
         echo "Making BAM pileup, filtering by phred quality 20..."
-        samtools mpileup -Q 20 -Agf $reference ${index}_sorted.bam > 33.mpilup
+        samtools mpileup -Q 20 -Agf $reference ${index}_sorted.bam > ${index}.mpilup
 
         echo "Generating consensus genotypes..."
         bcftools view -cg ${index}.mpilup > temp.vcf
