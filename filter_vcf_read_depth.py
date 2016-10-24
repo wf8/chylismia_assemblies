@@ -21,8 +21,8 @@ with open(in_file, "r") as f:
             output_file.append(line)
         else:
             if "DP=" in line:
-                start = line.index("DP=") + 3
-                end = line.index(";")
+                start = line.find("DP=") + 3
+                end = line.find(";", start)
                 depth = int(line[start:end])
                 if depth >= depth_threshold:
                     output_file.append(line)
