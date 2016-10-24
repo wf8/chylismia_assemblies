@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for index in 33
+for index in 33 34 35 36 37 38 39 40 41  
 do
 
     echo "Uncompressing index: $index"
@@ -10,9 +10,8 @@ do
     echo "Filtering adapter sequences..."
     java -classpath utilities/Trimmomatic-0.36/trimmomatic-0.36.jar org.usadellab.trimmomatic.TrimmomaticPE -threads 4 -phred33 150PE/Index_${index}_*R1*.fastq 150PE/Index_${index}_*R2*.fastq ${index}_trimmed_P1.fq ${index}_trimmed_U1.fq ${index}_trimmed_P2.fq ${index}_trimmed_U2.fq ILLUMINACLIP:utilities/Fast-Plast/bin/NEB-PE.fa:1:30:10 SLIDINGWINDOW:10:20 MINLEN:40
 
-    # exclude single copy loci with too low coverage: "PgiC" "LFY" "WAXY" "ADH"
-    # make reference assemblies of nuclear rDNA and mitochondrial genes:
-    for ref in "CYTB" "PgiC" "LFY" "WAXY" "ADH" "26S" "18S" "MatR" "ATP6" "trnI" "ORF224" "ORF250" "ORF454" "NAD5" "NAD4" "NAD6" "NAD7" "RPS13" "COXIII" "ATP8" "ORF206" "RPS14" "NAD3" "NAD2" "S3" "trnS" "ATP9" "ATP1" "COXI"
+    # make reference assemblies of nuclear rDNA, mitochondrial genes, and single copy loci "PgiC" "LFY" "WAXY" "ADH":
+    for ref in "ITS" "ETS" "CYTB" "PgiC" "LFY" "WAXY" "ADH" "26S" "18S" "MatR" "ATP6" "trnI" "ORF224" "ORF250" "ORF454" "NAD5" "NAD4" "NAD6" "NAD7" "RPS13" "COXIII" "ATP8" "ORF206" "RPS14" "NAD3" "NAD2" "S3" "trnS" "ATP9" "ATP1" "COXI"
     do
 
         reference="reference_genomes/${ref}.fasta"
@@ -37,17 +36,17 @@ do
         samtools mpileup -Q 20 -Agf $reference ${index}_sorted.bam > ${index}.mpilup
 
         echo "Generating consensus genotypes..."
-        bcftools view -cg ${index}.mpilup > temp.vcf
+        bcftools view -cg ${index}.mpilup > ${index}_temp.vcf
         
-        echo "Filtering for read depth >= 20..."
-        python filter_vcf_read_depth.py temp.vcf 20
+        echo "Filtering for read depth >= 10..."
+        python filter_vcf_read_depth.py ${index}_temp.vcf 10
 
         echo "Generating final FASTA sequence..."
-        vcfutils.pl vcf2fq temp.vcf.filtered > ${index}.fastq
+        vcfutils.pl vcf2fq ${index}_temp.vcf.filtered > ${index}.fastq
         seqtk seq -A ${index}.fastq > ${index}.fasta
         
         echo "Cleaning up..."
-        rm temp.vcf temp.vcf.filtered
+        rm ${index}_temp.vcf ${index}_temp.vcf.filtered ${index}.mpilup
         rm ${index}_sorted.bam ${index}.bam ${index}.sam
         mkdir ${output_dir}${index}
         mv ${index}.fasta ${index}.fastq ${index}_read_depth.tsv ${output_dir}${index}
