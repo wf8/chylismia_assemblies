@@ -21,7 +21,7 @@ do
         echo "Assembling index: $index"
         
         echo "Mapping reads with bwa..."
-        bwa mem $reference ${index}_trimmed_P1.fq ${index}_trimmed_P2.fq > ${index}.sam
+        bwa mem $reference -R "@RG\tID:1\tSM:1" ${index}_trimmed_P1.fq ${index}_trimmed_P2.fq > ${index}.sam
         
         echo "Coverting SAM to BAM..."
         samtools view -bS ${index}.sam > ${index}.bam
@@ -36,7 +36,7 @@ do
         samtools mpileup -Q 20 -Agf $reference ${index}_sorted.bam > ${index}.mpilup
 
         echo "Generating consensus genotypes..."
-        bcftools view -cg ${index}.mpilup > ${index}_temp.vcf
+        bcftools view -s samples.txt -cg ${index}.mpilup > ${index}_temp.vcf
         
         echo "Filtering for read depth >= 10..."
         python filter_vcf_read_depth.py ${index}_temp.vcf 10
